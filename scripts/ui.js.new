@@ -1,0 +1,153 @@
+// UI enhancements for dark space theme
+// Place at: /scripts/ui.js.new
+// This script improves modals, adds smooth navigation, lazy-loading, gallery layout, and reveal animations.
+// It intentionally does NOT change authentication or backend behavior.
+
+const SELECTORS = {
+  authModal: "#auth-modal",
+  loginLink: "#login-link",
+  signupLink: "#signup-link",
+  logoutLink: "#logout-link",
+  adminOnly: ".admin-only",
+  gallery: ".gallery",
+  images: "img[data-src]",
+  navLinks: "nav a"
+};
+
+function qs(sel) { return document.querySelector(sel); }
+function qsa(sel) { return Array.from(document.querySelectorAll(sel)); }
+
+/* ---------- Modal improvements ---------- */
+function enhanceModal() {
+  const modal = qs(SELECTORS.authModal);
+  if (!modal) return;
+  modal.style.transition = "opacity 220ms ease, transform 220ms ease";
+  modal.classList.add("card");
+  modal.addEventListener("click", (ev) => {
+    if (ev.target === modal) modal.style.display = "none";
+  });
+  window.showModal = (html) => {
+    modal.innerHTML = html;
+    modal.style.display = "flex";
+    modal.style.justifyContent = "center";
+    modal.style.alignItems = "center";
+    modal.style.position = "fixed";
+    modal.style.inset = 0;
+    modal.style.background = "linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.45))";
+    const inner = modal.firstElementChild;
+    if (inner) {
+      inner.style.minWidth = "320px";
+      inner.classList.add("card");
+    }
+  };
+  window.hideModal = () => { modal.style.display = "none"; };
+}
+
+/* ---------- Smooth nav and active link ---------- */
+function setupNav() {
+  qsa(SELECTORS.navLinks).forEach(a => {
+    a.addEventListener("click", (e) => {
+      const href = a.getAttribute("href");
+      if (href && href.startsWith("#")) {
+        e.preventDefault();
+        document.querySelector(href)?.scrollIntoView({behavior:"smooth"});
+      }
+    });
+  });
+
+  const links = qsa(SELECTORS.navLinks);
+  const sections = links.map(a => {
+    const href = a.getAttribute("href");
+    return (href && href.startsWith("/")) ? null : document.querySelector(href);
+  });
+  window.addEventListener("scroll", () => {
+    let idx = -1;
+    sections.forEach((s,i) => { if (s && window.scrollY >= s.offsetTop - 120) idx = i; });
+    links.forEach((a,i) => a.classList.toggle("active", i === idx));
+  });
+}
+
+/* ---------- Lazy load images ---------- */
+function lazyLoadImages() {
+  const imgs = document.querySelectorAll(SELECTORS.images);
+  if (!imgs.length) return;
+  const obs = new IntersectionObserver((entries, o) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+        o.unobserve(img);
+      }
+    });
+  }, { rootMargin: "120px 0px" });
+  imgs.forEach(i => obs.observe(i));
+}
+
+/* ---------- Gallery conversion & caption handling ---------- */
+function enhanceGallery() {
+  qsa(SELECTORS.gallery).forEach(g => {
+    g.classList.add("gallery");
+    g.querySelectorAll("img").forEach(img => {
+      if (!img.dataset.src) {
+        img.dataset.src = img.src;
+        img.src = "";
+        img.setAttribute("loading", "lazy");
+      }
+      const cap = img.getAttribute("alt") || img.dataset.caption || "";
+      if (cap) {
+        let parent = img.parentElement;
+        if (!parent.classList.contains("gallery-item")) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "gallery-item card";
+          img.replaceWith(wrapper);
+          wrapper.appendChild(img);
+          parent = wrapper;
+        }
+        if (!parent.querySelector(".gallery-caption")) {
+          const c = document.createElement("div");
+          c.className = "gallery-caption";
+          c.textContent = cap;
+          parent.appendChild(c);
+        }
+      } else {
+        img.classList.add("card");
+      }
+    });
+  });
+}
+
+/* ---------- Reveal animations ---------- */
+function revealOnScroll() {
+  const cards = document.querySelectorAll(".card");
+  const ob = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = 1;
+        e.target.style.transform = "translateY(0)";
+        ob.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.06 });
+  cards.forEach(c => {
+    c.style.opacity = 0;
+    c.style.transform = "translateY(14px)";
+    ob.observe(c);
+  });
+}
+
+/* ---------- Init ---------- */
+function initUI() {
+  try {
+    enhanceModal();
+    setupNav();
+    lazyLoadImages();
+    enhanceGallery();
+    revealOnScroll();
+  } catch (err) {
+    console.warn("UI init warning:", err);
+  }
+}
+
+export { initUI, lazyLoadImages, enhanceGallery };
+document.addEventListener("DOMContentLoaded", initUI, { once: true });

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stellar Collective — Astrophotography</title>
+
+  <link rel="stylesheet" href="/styles/dark-space.css.new" />
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/news.html">News</a>
+      <a href="/astro.html">Astrophotography</a>
+      <a href="/calendar.html">Calendar</a>
+      <span id="auth-links">
+        <a href="#" id="login-link">Log in</a> |
+        <a href="#" id="signup-link">Sign up</a> |
+        <a href="#" id="logout-link" style="display:none">Log out</a>
+      </span>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Astrophotography Gallery</h1>
+      <p class="small">Astrophotos are curated by the site admin. If you are the admin, use the upload controls below.</p>
+
+      <div class="admin-only admin-panel" style="display:none; margin-top:1rem;">
+        <h3>Upload Photo (admin only)</h3>
+        <input type="file" id="astro-file" accept="image/*" />
+        <input id="astro-caption" placeholder="Caption (optional)" />
+        <button class="btn" id="astro-upload">Upload</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2>Gallery</h2>
+      <div id="astro-gallery" class="gallery"></div>
+    </section>
+  </main>
+
+  <div id="auth-modal" style="display:none"></div>
+
+  <script type="module" src="/firebase-auth.js"></script>
+  <script type="module" src="/scripts/ui.js.new"></script>
+
+  <script type="module">
+    import { uploadAstroImage } from '/firebase-auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    // const app = initializeApp({/* replace with your firebase config if needed */});
+    const db = getFirestore();
+
+    document.getElementById('astro-upload')?.addEventListener('click', async () => {
+      const file = document.getElementById('astro-file').files[0];
+      const caption = document.getElementById('astro-caption').value.trim();
+      if (!file) return alert('Choose a file to upload.');
+      try {
+        await uploadAstroImage(file, caption);
+        alert('Uploaded');
+        document.getElementById('astro-file').value = '';
+        document.getElementById('astro-caption').value = '';
+        loadGallery();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    async function loadGallery(){
+      const q = query(collection(db, 'astro'), orderBy('createdAt','desc'));
+      const snap = await getDocs(q);
+      const g = document.getElementById('astro-gallery');
+      g.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const el = document.createElement('div');
+        el.className = 'gallery-item card';
+        const img = document.createElement('img');
+        img.dataset.src = d.url; // lazy loading handled by ui.js
+        img.alt = d.caption || 'Astrophotograph';
+        img.setAttribute('loading', 'lazy');
+        el.appendChild(img);
+        if (d.caption) {
+          const cap = document.createElement('div');
+          cap.className = 'gallery-caption';
+          cap.textContent = d.caption;
+          el.appendChild(cap);
+        }
+        g.appendChild(el);
+      });
+      // trigger lazy load in case ui.js already ran
+      if (window.lazyLoadImages) window.lazyLoadImages();
+    }
+
+    loadGallery();
+  </script>
+</body>
+</html>

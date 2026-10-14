@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stellar Collective — News</title>
+
+  <link rel="stylesheet" href="/styles/dark-space.css.new" />
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/news.html">News</a>
+      <a href="/astro.html">Astrophotography</a>
+      <a href="/calendar.html">Calendar</a>
+      <span id="auth-links">
+        <a href="#" id="login-link">Log in</a> |
+        <a href="#" id="signup-link">Sign up</a> |
+        <a href="#" id="logout-link" style="display:none">Log out</a>
+      </span>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>News</h1>
+      <p class="small">Official announcements are posted by the site admin only.</p>
+
+      <div class="admin-only admin-panel" style="display:none; margin-top:1rem;">
+        <h3>Publish News</h3>
+        <input id="news-title" placeholder="Headline" />
+        <textarea id="news-body" placeholder="Details"></textarea>
+        <button class="btn" id="news-submit">Publish news</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2>Latest announcements</h2>
+      <ul id="news-list" style="list-style: disc; margin-left:1rem;"></ul>
+    </section>
+  </main>
+
+  <div id="auth-modal" style="display:none"></div>
+
+  <script type="module" src="/firebase-auth.js"></script>
+  <script type="module" src="/scripts/ui.js.new"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    // If firebase-auth.js already initialized, calling initializeApp with no args will fail;
+    // You can remove initializeApp here and rely on firebase-auth.js. For clarity, please ensure your Firebase app is initialized once.
+    // const app = initializeApp({/* replace with your firebase config if needed */});
+    const db = getFirestore();
+
+    document.getElementById('news-submit')?.addEventListener('click', async () => {
+      const title = document.getElementById('news-title').value.trim();
+      const body = document.getElementById('news-body').value.trim();
+      if (!title || !body) return alert('Provide title and body');
+      try {
+        await addDoc(collection(db, 'news'), {
+          title, body, createdAt: serverTimestamp()
+        });
+        alert('News published');
+        document.getElementById('news-title').value='';
+        document.getElementById('news-body').value='';
+        loadNews();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    async function loadNews() {
+      const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      const ul = document.getElementById('news-list');
+      ul.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const li = document.createElement('li');
+        li.className = 'card';
+        li.style.marginBottom = '0.8rem';
+        li.innerHTML = `
+          <strong>${escapeHtml(d.title)}</strong>
+          <div class="small">${new Date(d.createdAt?.seconds ? d.createdAt.seconds * 1000 : Date.now()).toLocaleString()}</div>
+          <p style="margin-top:0.5rem;">${escapeHtml(d.body)}</p>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    function escapeHtml(s){ return String(s || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+
+    loadNews();
+  </script>
+</body>
+</html>

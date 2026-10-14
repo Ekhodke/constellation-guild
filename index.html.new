@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stellar Collective — Home</title>
+
+  <!-- Theme CSS -->
+  <link rel="stylesheet" href="/styles/dark-space.css.new" />
+
+  <!-- Fonts: place your font files in /assets/fonts/ -->
+  <!-- Keep firebase-auth.js in your project as before; ui.js new augments the UI -->
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/news.html">News</a>
+      <a href="/astro.html">Astrophotography</a>
+      <a href="/calendar.html">Calendar</a>
+      <span id="auth-links">
+        <a href="#" id="login-link">Log in</a> |
+        <a href="#" id="signup-link">Sign up</a> |
+        <a href="#" id="logout-link" style="display:none">Log out</a>
+      </span>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Stellar Collective</h1>
+      <p class="small">A dark, space-themed community for astrophotography, news, and personal blogs.</p>
+
+      <h2>Quick actions</h2>
+      <ul>
+        <li>Sign up or log in to participate.</li>
+        <li>Only the site admin can upload astrophotography images and edit the calendar.</li>
+        <li>Any registered user can publish blog posts and edit their own posts.</li>
+        <li>News is posted by site admin only.</li>
+      </ul>
+    </section>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2>Featured</h2>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <div style="flex:1; min-width:220px;">
+          <h3>Astro Gallery</h3>
+          <p class="small">Explore recent captures or go to the <a href="/astro.html">Astrophotography</a> page.</p>
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <h3>Latest Blogs</h3>
+          <p class="small">Read community posts on the <a href="/blog.html">Blog</a> page.</p>
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <h3>Upcoming</h3>
+          <p class="small">Check observing sessions and events on the <a href="/calendar.html">Calendar</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2>Design notes</h2>
+      <ul>
+        <li>Dark, minimal, retro-inspired color palette.</li>
+        <li>Subtle starfield background for ambiance (non-intrusive).</li>
+        <li>Typography prioritized for readability: Bytalion / Space Nomad / Bodoni with Courier New fallback.</li>
+      </ul>
+    </section>
+
+    <!-- Admin-only panel placeholder (visible only to admin via firebase-auth.js) -->
+    <section class="admin-only admin-panel card" style="margin-top:1rem; display:none;">
+      <h3>Admin quick links</h3>
+      <ul>
+        <li><a href="/news.html">Manage News</a></li>
+        <li><a href="/astro.html">Upload Astrophotos</a></li>
+        <li><a href="/calendar.html">Edit Calendar</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Auth modal container -->
+  <div id="auth-modal" style="display:none"></div>
+
+  <!-- Existing firebase auth logic (keep your file) -->
+  <script type="module" src="/firebase-auth.js"></script>
+
+  <!-- UI enhancements and theme behaviors -->
+  <script type="module" src="/scripts/ui.js.new"></script>
+</body>
+</html>
