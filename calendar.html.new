@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stellar Collective — Calendar</title>
+
+  <link rel="stylesheet" href="/styles/dark-space.css.new" />
+
+  <!-- FullCalendar dark theme (global bundle) -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+  <style>
+    /* small override so calendar matches the theme */
+    .fc {
+      background: transparent;
+      color: #e6eef6;
+      border: none;
+    }
+    .fc .fc-toolbar-title { color:#fff; }
+    .fc .fc-button { background: linear-gradient(90deg, #7ae7ff22, #b48aff22); color:#e6eef6; border:none; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/news.html">News</a>
+      <a href="/astro.html">Astrophotography</a>
+      <a href="/calendar.html">Calendar</a>
+      <span id="auth-links">
+        <a href="#" id="login-link">Log in</a> |
+        <a href="#" id="signup-link">Sign up</a> |
+        <a href="#" id="logout-link" style="display:none">Log out</a>
+      </span>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Events & Calendar</h1>
+      <p class="small">Calendar events are editable by the site admin only. Visitors can view upcoming events.</p>
+
+      <div class="admin-only admin-panel" style="display:none; margin-top:1rem;">
+        <h3>Create event (admin)</h3>
+        <input id="evt-title" placeholder="Event title" />
+        <input id="evt-start" placeholder="Start (YYYY-MM-DD or ISO)" />
+        <input id="evt-end" placeholder="End (optional)" />
+        <button class="btn" id="evt-create">Create event</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1rem;">
+      <div id="calendar"></div>
+    </section>
+  </main>
+
+  <div id="auth-modal" style="display:none"></div>
+
+  <script type="module" src="/firebase-auth.js"></script>
+  <script type="module" src="/scripts/ui.js.new"></script>
+
+  <!-- FullCalendar global bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    // const firebaseApp = initializeApp({/* replace with your firebase config if needed */});
+    const db = getFirestore();
+
+    // Initialize FullCalendar
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      themeSystem: 'standard',
+      height: 650,
+      headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+      eventColor: '#7ae7ff66',
+      eventTextColor: '#001'
+    });
+    calendar.render();
+
+    // load events from Firestore collection 'calendar'
+    async function loadEvents(){
+      const q = query(collection(db, 'calendar'), orderBy('start','asc'));
+      const snap = await getDocs(q);
+      const evts = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        evts.push({
+          id: doc.id,
+          title: d.title || 'Event',
+          start: d.start,
+          end: d.end || null,
+          extendedProps: { createdAt: d.createdAt }
+        });
+      });
+      calendar.removeAllEvents();
+      calendar.addEventSource(evts);
+    }
+
+    document.getElementById('evt-create')?.addEventListener('click', async () => {
+      const title = document.getElementById('evt-title').value.trim();
+      const start = document.getElementById('evt-start').value.trim();
+      const end = document.getElementById('evt-end').value.trim();
+      if (!title || !start) return alert('Title and start date required.');
+      try {
+        await addDoc(collection(db, 'calendar'), {
+          title, start, end: end || null, createdAt: serverTimestamp()
+        });
+        alert('Event created');
+        document.getElementById('evt-title').value='';
+        document.getElementById('evt-start').value='';
+        document.getElementById('evt-end').value='';
+        loadEvents();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    // initial load
+    loadEvents();
+  </script>
+</body>
+</html>

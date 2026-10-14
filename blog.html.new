@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stellar Collective — Blog</title>
+
+  <link rel="stylesheet" href="/styles/dark-space.css.new" />
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/news.html">News</a>
+      <a href="/astro.html">Astrophotography</a>
+      <a href="/calendar.html">Calendar</a>
+      <span id="auth-links">
+        <a href="#" id="login-link">Log in</a> |
+        <a href="#" id="signup-link">Sign up</a> |
+        <a href="#" id="logout-link" style="display:none">Log out</a>
+      </span>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Community Blog</h1>
+      <p class="small">Post and read community stories. Registered users can publish posts and edit their own posts.</p>
+
+      <!-- Create post (visible to any authenticated user) -->
+      <div id="create-post" style="margin-top:1rem;">
+        <h3>Create a post</h3>
+        <input id="post-title" placeholder="Title" />
+        <textarea id="post-body" placeholder="Write your post (markdown/plain text)"></textarea>
+        <button class="btn" id="post-submit">Publish</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2>Recent posts</h2>
+      <ul id="posts-list" style="list-style: disc; margin-left:1rem;"></ul>
+    </section>
+  </main>
+
+  <div id="auth-modal" style="display:none"></div>
+
+  <!-- Existing firebase auth logic (keep your file) -->
+  <script type="module" src="/firebase-auth.js"></script>
+
+  <!-- UI enhancements -->
+  <script type="module" src="/scripts/ui.js.new"></script>
+
+  <!-- Blog page logic: uses createBlogPost (exported by firebase-auth.js) -->
+  <script type="module">
+    import { createBlogPost } from '/firebase-auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    // NOTE: firebase-auth.js initializes firebase. Here we initialize Firestore again via the same SDK;
+    // if you share config across files, ensure they match. Replace with your project config if needed.
+    // For simplicity we read posts collection directly.
+    const app = initializeApp({});
+    const db = getFirestore();
+
+    document.getElementById('post-submit').onclick = async () => {
+      const title = document.getElementById('post-title').value.trim();
+      const content = document.getElementById('post-body').value.trim();
+      if (!title || !content) return alert('Please provide a title and content.');
+      try {
+        await createBlogPost(title, content);
+        alert('Post published');
+        document.getElementById('post-title').value = '';
+        document.getElementById('post-body').value = '';
+        loadPosts();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    async function loadPosts() {
+      const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      const ul = document.getElementById('posts-list');
+      ul.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const li = document.createElement('li');
+        li.className = 'card';
+        li.style.marginBottom = '0.8rem';
+        li.innerHTML = `
+          <strong>${escapeHtml(d.title)}</strong>
+          <div class="small">by ${escapeHtml(d.authorEmail || 'anonymous')} • ${new Date(d.createdAt?.seconds ? d.createdAt.seconds * 1000 : Date.now()).toLocaleString()}</div>
+          <p style="margin-top:0.5rem;">${escapeHtml(d.content)}</p>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    function escapeHtml(s){ return String(s || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+
+    // initial load
+    loadPosts();
+  </script>
+</body>
+</html>

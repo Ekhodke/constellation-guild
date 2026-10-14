@@ -1,0 +1,257 @@
+/* Dark space theme — retro/minimal tweaks
+   Place at: /styles/dark-space.css.new
+   Fonts should be placed in /assets/fonts/: Bytalion.woff2, SpaceNomad.woff2, Bodoni.woff2
+*/
+
+/* ---------- Fonts ---------- */
+@font-face {
+  font-family: "Bytalion";
+  src: url("/assets/fonts/Bytalion.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Nomad";
+  src: url("/assets/fonts/SpaceNomad.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bodoni";
+  src: url("/assets/fonts/Bodoni.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- Palette & variables (retro/minimal) ---------- */
+:root{
+  --bg-1: #05010b;      /* deep void */
+  --bg-2: #0b0c14;      /* subtle gradient */
+  --accent: #6fe8ff;    /* cyan accent */
+  --accent-2: #c48cff;  /* soft purple */
+  --muted: #9db0c1;
+  --glass: rgba(255,255,255,0.03);
+  --glass-2: rgba(255,255,255,0.02);
+  --card-border: rgba(255,255,255,0.05);
+  --card-glow: 0 10px 40px rgba(100,70,200,0.06);
+  --retro-halo: radial-gradient(closest-side, rgba(111,200,255,0.06), transparent 40%);
+}
+
+/* ---------- Base ---------- */
+* { box-sizing: border-box; }
+html,body { height:100%; }
+body {
+  margin:0;
+  min-height:100%;
+  background:
+    radial-gradient(1200px 400px at 10% 10%, rgba(120,100,255,0.04) 0%, transparent 12%),
+    radial-gradient(900px 400px at 90% 80%, rgba(110,230,255,0.03) 0%, transparent 16%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  color: #e6eef6;
+  font-family: "Bytalion", "Space Nomad", "Bodoni", "Courier New", monospace;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.5;
+  overflow-y:scroll;
+}
+
+/* ---------- Denser retro starfield (still subtle) ---------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 5% 12%, rgba(255,255,255,0.08) 50%, transparent 51%),
+    radial-gradient(1px 1px at 14% 65%, rgba(255,255,255,0.06) 50%, transparent 51%),
+    radial-gradient(1px 1px at 27% 30%, rgba(255,255,255,0.05) 50%, transparent 51%),
+    radial-gradient(1px 1px at 42% 82%, rgba(255,255,255,0.06) 50%, transparent 51%),
+    radial-gradient(1px 1px at 66% 18%, rgba(255,255,255,0.04) 50%, transparent 51%),
+    radial-gradient(1px 1px at 82% 54%, rgba(255,255,255,0.05) 50%, transparent 51%);
+  background-size: 100% 100%;
+  mix-blend-mode: overlay;
+  opacity: 0.95;
+  z-index: -1;
+  animation: twinkle 7s linear infinite alternate;
+}
+@keyframes twinkle {
+  from { opacity: 0.7; transform: translateZ(0) scale(1); }
+  to   { opacity: 1;   transform: translateZ(0) scale(1.01); }
+}
+
+/* ---------- Layout ---------- */
+.container {
+  max-width: 1100px;
+  margin: 3rem auto;
+  padding: 1.5rem;
+}
+
+/* Header / nav */
+header {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.1));
+  backdrop-filter: blur(6px) saturate(1.05);
+  border-bottom: 1px solid var(--card-border);
+  z-index: 40;
+}
+nav {
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  padding: 0.75rem 1.25rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  font-weight:700;
+  transition: all 180ms ease;
+  letter-spacing:0.4px;
+}
+nav a:hover, nav a.active {
+  color: #fff;
+  background: linear-gradient(90deg, rgba(122,231,255,0.06), rgba(196,140,255,0.03));
+  box-shadow: var(--card-glow);
+}
+
+/* ---------- Cards & panels ---------- */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 60px rgba(2,6,23,0.7);
+}
+
+/* ---------- Headings ---------- */
+h1,h2,h3 {
+  color: #fff;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 0.6px;
+}
+h1 { font-size: clamp(1.6rem, 2.6vw, 2.2rem); font-weight:800; }
+h2 { font-size: 1.25rem; font-weight:700; }
+h3 { font-size: 1rem; color: var(--muted); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display:inline-block;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #001;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  border: none;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow: 0 6px 22px rgba(123,90,255,0.12);
+  transition: transform 140ms ease;
+}
+.btn:active { transform: translateY(1px); }
+
+/* ---------- Forms ---------- */
+input[type="text"], input[type="email"], input[type="password"], textarea, select, input {
+  width:100%;
+  padding: 0.7rem;
+  background: var(--glass);
+  border: 1px solid var(--card-border);
+  border-radius:10px;
+  color: #eaf6ff;
+  outline: none;
+  margin-bottom:0.7rem;
+}
+textarea { min-height: 140px; resize:vertical; }
+
+/* ---------- Lists: emphasize bullet points ---------- */
+ul, ol {
+  margin-left: 1.25rem;
+  color: var(--muted);
+}
+ul li, ol li {
+  margin: 0.45rem 0;
+  padding-left: 0.4rem;
+  position: relative;
+  line-height:1.4;
+}
+ul li::marker { color: var(--accent); font-weight:700; }
+
+/* ---------- Gallery (Astrophotography) ---------- */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.gallery-item {
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.03);
+}
+.gallery-item img {
+  width:100%;
+  height: 100%;
+  object-fit: cover;
+  display:block;
+  transition: transform 360ms ease;
+}
+.gallery-item:hover img { transform: scale(1.03); }
+.gallery-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.6rem;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.6));
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+/* ---------- Admin panel ---------- */
+.admin-panel {
+  display: none; /* firebase-auth.js unhides admin-only elements; keep default hidden */
+  gap: .5rem;
+}
+
+/* ---------- Widgets ---------- */
+.small {
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+/* ---------- Footer ---------- */
+footer {
+  margin-top: 3rem;
+  padding: 2rem 0;
+  text-align:center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  border-top: 1px solid var(--card-border);
+}
+
+/* ---------- Hide copyright logos broadly ---------- */
+.copyright, .copyright-logo, img[class*="copyright"], .logo-copyright, .copyright-image {
+  display:none !important;
+  visibility: hidden !important;
+  width:0 !important;
+  height:0 !important;
+}
+
+/* ---------- Responsive tweaks ---------- */
+@media (max-width:720px){
+  .container { padding: 1rem; margin: 1.25rem; }
+  nav { gap:0.5rem; padding: 0.5rem 0.75rem; }
+  .gallery { grid-template-columns: 1fr 1fr; gap:0.6rem; }
+}
